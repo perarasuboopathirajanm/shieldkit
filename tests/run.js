@@ -11,7 +11,7 @@ const section = (s) => console.log("\n▸ " + s);
     "https://outlook.office.com/mail", "https://www.amazon.in/gp/cart", "https://www.paypal.com/signin",
     "https://raw.githubusercontent.com/user/repo/main/README.md", "https://pineapple.com", "https://www.onlinesbi.sbi/",
     "https://netbanking.hdfcbank.com/netbanking/", "https://example.com/contact?email=me@example.com",
-    "https://en.wikipedia.org/wiki/Phishing", "https://www.bbc.co.uk/news", "github.com", "https://www.icloud.com",
+    "https://en.wikipedia.org/wiki/Phishing", "https://www.bbc.co.uk/news", "github.com", "https://www.icloud.com", "https://t.me/durov", "https://web.telegram.org/k/",
   ];
   for (const u of legit) { const r = SK.analyzeUrl(u); ok(r.risk < 20, u, `→ ${r.risk} ${r.flags.map((f) => f.msg).join(" | ")}`); }
 
@@ -22,6 +22,8 @@ const section = (s) => console.log("\n▸ " + s);
     "http://192.168.4.20/bank/login.php", "https://user@evil-site.com/paypal", "https://xn--pple-43d.com/login",
     "https://amazon-gift-reward.com/claim", "https://perarasu-paypal-login.github.io/", "https://netfIix-billing.com/update",
     "https://secure.hdfc-kyc-update.in/verify", "javascript:alert(document.cookie)", "https://faceb00k.com/login",
+    "https://iplogger.com/2mvFy5", "https://iplogger.org/abc",
+    "https://a1b2-49-37-12-9.ngrok-free.app/login", "https://insta-verify.trycloudflare.com/", "https://xyz.serveo.net/instagram", "https://fast-cats-9.loca.lt/verify", "https://telegrarn-login.com/auth", "https://telegram-premium-gift.xyz/claim", "https://grabify.link/XYZ123", "https://2no.co/1abc", "http://yip.su/2xyz", "https://stopify.co/a1b2",
   ];
   for (const u of bad) { const r = SK.analyzeUrl(u); ok(r.risk >= 50, u, `→ ${r.risk} ${r.flags.map((f) => f.msg).join(" | ")}`); }
 
@@ -36,6 +38,7 @@ const section = (s) => console.log("\n▸ " + s);
   ok(SK.analyzeUrl("https://random-blog.vercel.app/").flags.some((f) => f.msg.includes("Free hosting")), "free hosting noted (but not alone suspicious)");
   ok(SK.analyzeUrl("https://shop.example.co.uk").reg === "example.co.uk", "co.uk handled as public suffix");
   ok(SK.analyzeUrl("https://evil.com/setup.exe").flags.some((f) => f.msg.includes("download")), "executable download flagged");
+  ok(SK.analyzeUrl("https://iplogger.com/2mvFy5").flags.some((f) => f.msg.includes("IP-logger")), "IP logger explicitly named");
   ok(SK.matchBrand("pineapple") === null, "'pineapple' is not an Apple impersonation");
   ok(SK.matchBrand("googel")?.how === "typo", "'googel' detected as typo of google");
   ok(SK.matchBrand("rnicrosoft")?.how === "homoglyph", "'rnicrosoft' detected as homoglyph");
