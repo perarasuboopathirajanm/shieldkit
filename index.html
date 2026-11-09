@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShieldKit — Browser Security Toolkit</title>
+  <meta name="description" content="Defensive security tools that run 100% in your browser: password audit, breach check, hash tools, JWT decoder, encoders and phishing URL analyzer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="scan"></div>
+  <header class="top">
+    <div class="brand"><span class="logo">⛨</span> Shield<span class="g">Kit</span><span class="cursor">_</span></div>
+    <a class="gh" href="https://github.com/perarasuboopathirajanm/shieldkit" target="_blank" rel="noopener">GitHub ↗</a>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <p class="prompt">root@shieldkit:~$ <span id="typed"></span></p>
+      <h1>Defensive security tools,<br /><span class="g">running 100% in your browser.</span></h1>
+      <p class="sub">Nothing you type leaves your device, except the k-anonymity breach check, which sends only 5 characters of a hash.</p>
+    </section>
+
+    <nav class="tabs" id="tabs" role="tablist">
+      <button class="tab on" data-t="password">🔑 Password</button>
+      <button class="tab" data-t="phish">🎣 Phishing URL</button>
+      <button class="tab" data-t="hash">#️⃣ Hash</button>
+      <button class="tab" data-t="jwt">🪪 JWT</button>
+      <button class="tab" data-t="encode">🔁 Encode</button>
+    </nav>
+
+    <!-- PASSWORD -->
+    <section class="panel on" id="p-password">
+      <div class="term-head"><span></span><span></span><span></span><b>password_audit.sh</b></div>
+      <div class="body">
+        <label class="lbl" for="pw">Password to audit</label>
+        <div class="inline">
+          <input id="pw" type="password" placeholder="Type a password…" autocomplete="off" spellcheck="false" />
+          <button class="btn ghost" id="pwShow" type="button">Show</button>
+        </div>
+        <div class="meter"><div id="pwBar"></div></div>
+        <div class="stats">
+          <div><span>Strength</span><b id="pwLabel">—</b></div>
+          <div><span>Entropy</span><b id="pwEntropy">—</b></div>
+          <div><span>Offline crack time*</span><b id="pwCrack">—</b></div>
+          <div><span>Breached?</span><b id="pwBreach">—</b></div>
+        </div>
+        <ul class="checks" id="pwChecks"></ul>
+        <div class="row">
+          <button class="btn" id="pwBreachBtn">Check against breaches (HIBP)</button>
+          <button class="btn ghost" id="pwGen">Generate strong password</button>
+        </div>
+        <p class="note">*Assumes 10 billion guesses/second (fast GPU, unsalted hash). Breach check uses the Have I Been Pwned k-anonymity API: only the first 5 characters of the SHA-1 hash are sent.</p>
+      </div>
+    </section>
+
+    <!-- PHISHING -->
+    <section class="panel" id="p-phish">
+      <div class="term-head"><span></span><span></span><span></span><b>phish_analyzer.py</b></div>
+      <div class="body">
+        <label class="lbl" for="url">Suspicious link</label>
+        <div class="inline">
+          <input id="url" type="text" placeholder="https://paypa1-secure-login.xyz/verify?acc=…" spellcheck="false" />
+          <button class="btn" id="urlGo">Analyze</button>
+        </div>
+        <div class="row samples">
+          <span>Try:</span>
+          <button class="chip" data-u="http://paypa1-account-verify.secure-login.xyz/update?user=you">fake PayPal</button>
+          <button class="chip" data-u="http://192.168.4.20/bank/login.php">IP login</button>
+          <button class="chip" data-u="https://bit.ly/3xYz9Ab">shortener</button>
+          <button class="chip" data-u="https://github.com/login">legit</button>
+        </div>
+        <div id="urlOut"></div>
+        <p class="note">Heuristic analysis only: it never visits the link. A low score doesn't guarantee a link is safe.</p>
+      </div>
+    </section>
+
+    <!-- HASH -->
+    <section class="panel" id="p-hash">
+      <div class="term-head"><span></span><span></span><span></span><b>hash_tools.c</b></div>
+      <div class="body grid2">
+        <div>
+          <label class="lbl" for="hashIn">Generate hashes from text</label>
+          <textarea id="hashIn" rows="4" placeholder="hello world" spellcheck="false"></textarea>
+          <div id="hashOut" class="kv"></div>
+        </div>
+        <div>
+          <label class="lbl" for="hashId">Identify a hash</label>
+          <textarea id="hashId" rows="4" placeholder="5f4dcc3b5aa765d61d8327deb882cf99" spellcheck="false"></textarea>
+          <div id="hashIdOut" class="kv"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JWT -->
+    <section class="panel" id="p-jwt">
+      <div class="term-head"><span></span><span></span><span></span><b>jwt_inspect.js</b></div>
+      <div class="body">
+        <label class="lbl" for="jwtIn">JSON Web Token</label>
+        <textarea id="jwtIn" rows="3" spellcheck="false" placeholder="eyJhbGciOi…"></textarea>
+        <div class="row"><button class="btn ghost" id="jwtSample">Load sample</button></div>
+        <div id="jwtWarn"></div>
+        <div class="grid2">
+          <div><label class="lbl">Header</label><pre id="jwtHead" class="code">—</pre></div>
+          <div><label class="lbl">Payload</label><pre id="jwtBody" class="code">—</pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENCODE -->
+    <section class="panel" id="p-encode">
+      <div class="term-head"><span></span><span></span><span></span><b>codec.sh</b></div>
+      <div class="body">
+        <label class="lbl" for="encIn">Input</label>
+        <textarea id="encIn" rows="3" spellcheck="false" placeholder="Text to encode or decode"></textarea>
+        <div class="row">
+          <select id="encMode">
+            <option value="b64">Base64</option>
+            <option value="url">URL</option>
+            <option value="hex">Hex</option>
+            <option value="bin">Binary</option>
+            <option value="rot13">ROT13</option>
+            <option value="html">HTML entities</option>
+          </select>
+          <button class="btn" id="encDo">Encode →</button>
+          <button class="btn ghost" id="decDo">← Decode</button>
+          <button class="btn ghost" id="encSwap">Swap ⇅</button>
+        </div>
+        <label class="lbl" for="encOut">Output</label>
+        <textarea id="encOut" rows="3" spellcheck="false" readonly></textarea>
+        <p class="err" id="encErr"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">Built by <a href="https://github.com/perarasuboopathirajanm">Perarasu Boopathirajan</a> · For learning and defensive use only</footer>
+  <div class="toast" id="toast">Copied</div>
+  <script src="app.js"></script>
+</body>
+</html>
