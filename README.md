@@ -2,7 +2,7 @@
 
 **Defensive security tools that run entirely in your browser.** No account, no server, no tracking.
 
-**[▶ Live demo](https://perarasuboopathirajanm.github.io/shieldkit/)** · ✅ 80 automated tests · 🔒 strict Content-Security-Policy
+**[▶ Live demo](https://perarasuboopathirajanm.github.io/shieldkit/)** · ✅ 95 automated tests · 🔒 strict Content-Security-Policy
 
 ## Tools
 
@@ -10,7 +10,7 @@
 |---|---|---|
 | 🔑 **Password strength** | Strength grade, offline crack time (fast hash vs bcrypt-like), detected weaknesses, secure generator | Uses **[zxcvbn](https://github.com/dropbox/zxcvbn)** pattern matching (dictionaries, names, l33t-speak, keyboard walks, dates, repeats). Grades are based on **offline** attack cost, so `Tr0ub4dor&3` is *Fair*, not "strong" |
 | 🛡️ **Breach check** | Has this password appeared in a data breach? | [HIBP Pwned Passwords](https://haveibeenpwned.com/API/v3#PwnedPasswords) **k-anonymity**: only the first 5 hex chars of the SHA-1 are sent, with response padding |
-| 🎣 **Phishing URL analyzer** | Risk score 0–100 with explained red flags | Finds the **real owner** (public suffixes like `co.uk`, free-hosting platforms like `*.github.io`). Detects brand impersonation (exact, homoglyph `paypa1`/`rn→m`, one-letter typosquats `gooogle`) across 30+ brands with full official-domain allowlists (e.g. `microsoftonline.com` is Microsoft). Also flags `user@host` tricks, punycode, IPs, shorteners, risky TLDs and executable downloads |
+| 🎣 **Phishing URL analyzer** | Risk score 0–100 with explained red flags | Finds the **real owner** (public suffixes like `co.uk`, free-hosting platforms like `*.github.io`). Detects brand impersonation and known IP-logger links (Grabify, IPLogger…), temporary tunnel links used by Telegram phishing bots (ngrok, Cloudflare tunnels, serveo, loca.lt…), exact, homoglyph `paypa1`/`rn→m`, one-letter typosquats `gooogle`) across 30+ brands with full official-domain allowlists (e.g. `microsoftonline.com` is Microsoft). Also flags `user@host` tricks, punycode, IPs, shorteners, risky TLDs and executable downloads |
 | #️⃣ **Hash generator** | MD5, SHA-1, SHA-256/384/512 | Web Crypto API; MD5 verified against RFC 1321 vectors |
 | 🔍 **Hash identifier** | bcrypt, Argon2, yescrypt, scrypt, shadow `$1$/$5$/$6$`, PBKDF2, LDAP, MySQL, raw hex and Base64 digests | Shows confidence and warns that same-length hashes (MD5/NTLM) can't be told apart by format |
 | 🪪 **JWT inspector** | Decodes header and payload, human-readable times | Flags `alg:none`, expiry problems, missing `exp`, long lifetimes, `jku`/`x5u`/`jwk` key-injection headers, suspicious `kid`, sensitive claims, and JWE tokens |
@@ -32,7 +32,7 @@ index.html    UI markup + CSP
 style.css     styling
 lib.js        all analysis logic (pure functions, no DOM)
 app.js        UI wiring
-tests/run.js  80 tests: phishing (legit vs malicious), RFC vectors, JWT, codecs, generator
+tests/run.js  95 tests: phishing (legit vs malicious), RFC vectors, JWT, codecs, generator
 ```
 
 ## Run & test

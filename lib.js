@@ -14,7 +14,8 @@
     "firebaseapp.com", "herokuapp.com", "onrender.com", "glitch.me", "repl.co", "replit.app", "replit.dev", "blogspot.com",
     "wordpress.com", "wixsite.com", "weebly.com", "000webhostapp.com", "azurewebsites.net", "appspot.com", "ngrok.io",
     "ngrok-free.app", "trycloudflare.com", "duckdns.org", "r2.dev", "surge.sh", "framer.app", "webflow.io", "square.site",
-    "godaddysites.com", "myshopify.com", "carrd.co", "notion.site", "translate.goog"];
+    "godaddysites.com", "myshopify.com", "carrd.co", "notion.site", "translate.goog",
+    "serveo.net", "loca.lt", "loclx.io", "lhr.life", "localhost.run", "pinggy.link", "pinggy.online", "tunnelmole.net", "devtunnels.ms", "ngrok.app", "ngrok-free.dev"];
 
   function registeredDomain(host) {
     const labels = host.split(".");
@@ -52,6 +53,7 @@
     binance: ["binance.com"], coinbase: ["coinbase.com"], metamask: ["metamask.io"],
     steam: ["steampowered.com", "steamcommunity.com"],
     adobe: ["adobe.com"], docusign: ["docusign.com", "docusign.net"],
+    telegram: ["telegram.org", "t.me", "telegram.me", "telesco.pe", "tdesktop.com", "telegra.ph"],
     dhl: ["dhl.com", "dhl.de"], fedex: ["fedex.com"], indiapost: ["indiapost.gov.in"],
     chase: ["chase.com"], wellsfargo: ["wellsfargo.com"], bankofamerica: ["bankofamerica.com"],
   };
@@ -93,6 +95,26 @@
   const SHORTENERS = new Set(["bit.ly", "tinyurl.com", "t.co", "ow.ly", "is.gd", "buff.ly", "cutt.ly", "rb.gy", "shorturl.at", "tiny.cc", "rebrand.ly", "t.ly", "s.id", "v.gd", "bl.ink", "shorte.st", "adf.ly"]);
   const RISKY_TLDS = new Set(["xyz", "top", "tk", "ml", "ga", "cf", "gq", "zip", "mov", "click", "link", "work", "rest", "country", "kim", "loan", "support", "icu", "buzz", "cam", "monster", "quest", "sbs", "cfd", "bond", "lol", "mom"]);
   const BAIT = ["login", "logon", "signin", "verify", "verification", "validate", "secure", "security", "update", "account", "confirm", "wallet", "password", "unlock", "suspended", "suspend", "billing", "invoice", "refund", "reward", "gift", "bonus", "kyc", "recover", "support", "helpdesk", "authenticate", "auth"];
+  // Known IP-logger / IP-grabber services (Grabify, IPLogger and their disguise domains).
+  // Simply opening one of these links records the visitor's IP, location, ISP and device.
+  const IP_LOGGERS = new Set([
+    "iplogger.org", "iplogger.com", "iplogger.ru", "iplogger.co", "iplogger.info", "iplogger.cn", "2no.co", "yip.su", "maper.info",
+    "iplis.ru", "02ip.ru", "ezstat.ru", "ipgrabber.ru", "ipgraber.ru", "wl.gl", "bit.do",
+    "grabify.link", "grabify.org", "grabify.world", "grabify.icu",
+    "blasze.com", "blasze.tk", "ps3cfw.com", "bmwforum.co", "leancoding.co", "spottyfly.com", "stopify.co", "yoütu.be", "xn--yotu-1ra.be",
+    "xda-developers.us", "quickmessage.us", "fortnight.space", "fortnitechat.site", "youshouldclick.us", "joinmy.site", "crabrave.pw",
+    "lovebird.guru", "trulove.guru", "dateing.club", "otherhalf.life", "shrekis.life", "datasig.io", "datauth.io", "headshot.monster",
+    "gaming-at-my.best", "progaming.monster", "yourmy.monster", "screenshare.host", "imageshare.best", "screenshot.best",
+    "gamingfun.me", "catsnthing.com", "catsnthings.fun", "curiouscat.club", "mypic.icu", "partpicker.shop", "sportshub.bar",
+    "locations.quest", "lovingyou.fun", "freegiftcards.co", "ipgrab.net", "whatstheirip.com", "iplogger.de", "api.grabify.link",
+    "canarytokens.com", "canarytokens.org",
+  ]);
+  // Temporary tunnel services: they expose a page running on someone's own computer.
+  // Telegram "phishing bots" and kits like Zphisher/CamPhish publish their fake pages through these.
+  const TUNNELS = ["ngrok.io", "ngrok.app", "ngrok-free.app", "ngrok-free.dev", "ngrok.dev", "trycloudflare.com", "serveo.net", "serveousercontent.com",
+    "loca.lt", "localtunnel.me", "loclx.io", "lhr.life", "lhr.rocks", "localhost.run", "pinggy.link", "pinggy.online", "a.pinggy.io",
+    "bore.pub", "tunnelmole.net", "devtunnels.ms", "telebit.cloud", "localto.net", "packetriot.net", "expose.dev", "sharedwithexpose.com",
+    "playit.gg", "portmap.io", "xip.io", "nip.io", "sslip.io"];
   const RISKY_EXT = /\.(exe|scr|msi|bat|cmd|ps1|vbs|js|jar|apk|dmg|iso|img|hta|lnk|zip|rar|7z)$/i;
 
   function analyzeUrl(raw) {
@@ -125,6 +147,9 @@
     if (isIP) add("bad", "Raw IP address instead of a domain", "Legitimate services use domain names; IP links hide who runs the server.", 35);
     if (u.username || u.password) add("bad", "Credentials/'@' trick before the host", `Everything before '@' is ignored. This link really goes to ${host}.`, 35);
     if (host.split(".").some((l) => l.startsWith("xn--"))) add("bad", "Punycode / homograph domain", "Uses look-alike Unicode letters (e.g. a Cyrillic 'а') to imitate a real domain.", 35);
+    if (IP_LOGGERS.has(reg) || IP_LOGGERS.has(host)) add("bad", "Known IP-logger / tracking link", "Just opening this link records your IP address, city, internet provider, device and browser, and sends them to whoever created it. Don't open it.", 70);
+    const tunnel = TUNNELS.find((t) => host === t || host.endsWith("." + t));
+    if (tunnel) add("bad", `Temporary tunnel link (${tunnel})`, "This page runs on someone's personal computer through a tunnel service. Phishing kits and Telegram phishing bots use these to host fake login and camera/location-grabbing pages. Real companies never send you links like this.", 30);
     if (SHORTENERS.has(reg)) add("warn", "Link shortener", "Hides the real destination. Expand it with a link-preview service before opening.", 25);
     if (shared) add("warn", `Free hosting subdomain (*.${shared})`, `Anyone can create a site on ${shared}. The owner is "${reg}", not ${shared}.`, 15);
     if (RISKY_TLDS.has(tld)) add("warn", `High-abuse TLD (.${tld})`, "Cheap domains like this are heavily used in phishing campaigns.", 15);
@@ -370,7 +395,7 @@
     return 0;
   }
 
-  const API = { registeredDomain, editDistance, matchBrand, analyzeUrl, md5, hashAll, identifyHash, inspectJwt, duration, codecs, generatePassword, hibpParts, hibpCount, toHex, BRANDS };
+  const API = { IP_LOGGERS, TUNNELS, registeredDomain, editDistance, matchBrand, analyzeUrl, md5, hashAll, identifyHash, inspectJwt, duration, codecs, generatePassword, hibpParts, hibpCount, toHex, BRANDS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.SK = API;
 })(typeof globalThis !== "undefined" ? globalThis : this);
