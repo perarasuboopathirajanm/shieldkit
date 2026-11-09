@@ -3,86 +3,89 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Strict CSP: only our own files, zxcvbn from cdnjs (with SRI), and the HIBP range API. No inline scripts or styles. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
   <title>ShieldKit — Browser Security Toolkit</title>
-  <meta name="description" content="Defensive security tools that run 100% in your browser: password audit, breach check, hash tools, JWT decoder, encoders and phishing URL analyzer." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <meta name="description" content="Defensive security tools that run in your browser: password strength and breach check, phishing URL analyzer, hash tools, JWT inspector and encoders." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="scan"></div>
+  <div class="scan" aria-hidden="true"></div>
   <header class="top">
-    <div class="brand"><span class="logo">⛨</span> Shield<span class="g">Kit</span><span class="cursor">_</span></div>
-    <a class="gh" href="https://github.com/perarasuboopathirajanm/shieldkit" target="_blank" rel="noopener">GitHub ↗</a>
+    <div class="brand"><span class="logo" aria-hidden="true">⛨</span> Shield<span class="g">Kit</span><span class="cursor" aria-hidden="true">_</span></div>
+    <a class="gh" href="https://github.com/perarasuboopathirajanm/shieldkit" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
   </header>
 
   <main class="wrap">
     <section class="hero">
-      <p class="prompt">root@shieldkit:~$ <span id="typed"></span></p>
-      <h1>Defensive security tools,<br /><span class="g">running 100% in your browser.</span></h1>
-      <p class="sub">Nothing you type leaves your device, except the k-anonymity breach check, which sends only 5 characters of a hash.</p>
+      <p class="prompt" aria-hidden="true">root@shieldkit:~$ <span id="typed"></span></p>
+      <h1>Defensive security tools,<br /><span class="g">running in your browser.</span></h1>
+      <p class="sub">No account, no server, no tracking. Your input never leaves this page. The only exception is the optional breach check, which sends just the first 5 characters of a SHA-1 hash.</p>
     </section>
 
-    <nav class="tabs" id="tabs" role="tablist">
-      <button class="tab on" data-t="password">🔑 Password</button>
-      <button class="tab" data-t="phish">🎣 Phishing URL</button>
-      <button class="tab" data-t="hash">#️⃣ Hash</button>
-      <button class="tab" data-t="jwt">🪪 JWT</button>
-      <button class="tab" data-t="encode">🔁 Encode</button>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Tools">
+      <button class="tab on" role="tab" aria-selected="true" data-t="password">🔑 Password</button>
+      <button class="tab" role="tab" aria-selected="false" tabindex="-1" data-t="phish">🎣 Phishing URL</button>
+      <button class="tab" role="tab" aria-selected="false" tabindex="-1" data-t="hash">#️⃣ Hash</button>
+      <button class="tab" role="tab" aria-selected="false" tabindex="-1" data-t="jwt">🪪 JWT</button>
+      <button class="tab" role="tab" aria-selected="false" tabindex="-1" data-t="encode">🔁 Encode</button>
     </nav>
 
     <!-- PASSWORD -->
-    <section class="panel on" id="p-password">
+    <section class="panel on" id="p-password" role="tabpanel">
       <div class="term-head"><span></span><span></span><span></span><b>password_audit.sh</b></div>
       <div class="body">
         <label class="lbl" for="pw">Password to audit</label>
         <div class="inline">
-          <input id="pw" type="password" placeholder="Type a password…" autocomplete="off" spellcheck="false" />
-          <button class="btn ghost" id="pwShow" type="button">Show</button>
+          <input id="pw" type="password" placeholder="Type a password…" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="256" />
+          <button class="btn ghost" id="pwShow" type="button" aria-pressed="false">Show</button>
         </div>
-        <div class="meter"><div id="pwBar"></div></div>
+        <div class="meter" role="meter" aria-label="Password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"><div id="pwBar"></div></div>
         <div class="stats">
           <div><span>Strength</span><b id="pwLabel">—</b></div>
-          <div><span>Entropy</span><b id="pwEntropy">—</b></div>
-          <div><span>Offline crack time*</span><b id="pwCrack">—</b></div>
-          <div><span>Breached?</span><b id="pwBreach">—</b></div>
+          <div><span>Crack: fast hash*</span><b id="pwFast">—</b></div>
+          <div><span>Crack: bcrypt-like*</span><b id="pwSlow">—</b></div>
+          <div><span>In data breaches?</span><b id="pwBreach">—</b></div>
         </div>
-        <ul class="checks" id="pwChecks"></ul>
+        <ul class="feedback" id="pwFeedback" aria-live="polite"></ul>
+        <p class="engine" id="pwEngine"></p>
         <div class="row">
-          <button class="btn" id="pwBreachBtn">Check against breaches (HIBP)</button>
-          <button class="btn ghost" id="pwGen">Generate strong password</button>
+          <button class="btn" id="pwBreachBtn" type="button">Check breaches (HIBP)</button>
+          <button class="btn ghost" id="pwGen" type="button">Generate strong password</button>
         </div>
-        <p class="note">*Assumes 10 billion guesses/second (fast GPU, unsalted hash). Breach check uses the Have I Been Pwned k-anonymity API: only the first 5 characters of the SHA-1 hash are sent.</p>
+        <p class="note">*Average offline attack time if the password hash leaked: <b>fast hash</b> = 10 billion guesses/s (MD5/SHA-1 on GPUs), <b>bcrypt-like</b> = 10,000 guesses/s. Strength uses <a href="https://github.com/dropbox/zxcvbn" target="_blank" rel="noopener noreferrer">zxcvbn</a>, which detects dictionary words, names, l33t-speak, keyboard patterns, dates and repeats. Breach check uses <a href="https://haveibeenpwned.com/API/v3#PwnedPasswords" target="_blank" rel="noopener noreferrer">HIBP</a> k-anonymity with response padding.</p>
       </div>
     </section>
 
     <!-- PHISHING -->
-    <section class="panel" id="p-phish">
+    <section class="panel" id="p-phish" role="tabpanel">
       <div class="term-head"><span></span><span></span><span></span><b>phish_analyzer.py</b></div>
       <div class="body">
         <label class="lbl" for="url">Suspicious link</label>
         <div class="inline">
-          <input id="url" type="text" placeholder="https://paypa1-secure-login.xyz/verify?acc=…" spellcheck="false" />
-          <button class="btn" id="urlGo">Analyze</button>
+          <input id="url" type="text" inputmode="url" placeholder="https://paypa1-secure-login.xyz/verify" spellcheck="false" autocapitalize="off" />
+          <button class="btn" id="urlGo" type="button">Analyze</button>
         </div>
         <div class="row samples">
           <span>Try:</span>
-          <button class="chip" data-u="http://paypa1-account-verify.secure-login.xyz/update?user=you">fake PayPal</button>
-          <button class="chip" data-u="http://192.168.4.20/bank/login.php">IP login</button>
-          <button class="chip" data-u="https://bit.ly/3xYz9Ab">shortener</button>
-          <button class="chip" data-u="https://github.com/login">legit</button>
+          <button class="chip" type="button" data-u="http://paypa1-account-verify.secure-login.xyz/update">look-alike</button>
+          <button class="chip" type="button" data-u="https://paypal.com.account-secure.xyz/signin">brand in subdomain</button>
+          <button class="chip" type="button" data-u="https://user@evil-site.com/paypal">@ trick</button>
+          <button class="chip" type="button" data-u="https://gooogle.com/accounts/login">typosquat</button>
+          <button class="chip" type="button" data-u="https://login.microsoftonline.com/common/oauth2">legit</button>
         </div>
-        <div id="urlOut"></div>
-        <p class="note">Heuristic analysis only: it never visits the link. A low score doesn't guarantee a link is safe.</p>
+        <div id="urlOut" aria-live="polite"></div>
+        <p class="note">Static analysis only: the link is never opened. It checks ownership (the registered domain, including free-hosting platforms and country suffixes), brand impersonation (exact, look-alike characters and one-letter typos across 30+ brands), and structural tricks. A low score doesn't guarantee a link is safe.</p>
       </div>
     </section>
 
     <!-- HASH -->
-    <section class="panel" id="p-hash">
+    <section class="panel" id="p-hash" role="tabpanel">
       <div class="term-head"><span></span><span></span><span></span><b>hash_tools.c</b></div>
       <div class="body grid2">
         <div>
-          <label class="lbl" for="hashIn">Generate hashes from text</label>
+          <label class="lbl" for="hashIn">Generate hashes from text (UTF-8)</label>
           <textarea id="hashIn" rows="4" placeholder="hello world" spellcheck="false"></textarea>
           <div id="hashOut" class="kv"></div>
         </div>
@@ -95,48 +98,52 @@
     </section>
 
     <!-- JWT -->
-    <section class="panel" id="p-jwt">
+    <section class="panel" id="p-jwt" role="tabpanel">
       <div class="term-head"><span></span><span></span><span></span><b>jwt_inspect.js</b></div>
       <div class="body">
         <label class="lbl" for="jwtIn">JSON Web Token</label>
-        <textarea id="jwtIn" rows="3" spellcheck="false" placeholder="eyJhbGciOi…"></textarea>
-        <div class="row"><button class="btn ghost" id="jwtSample">Load sample</button></div>
-        <div id="jwtWarn"></div>
+        <textarea id="jwtIn" rows="3" spellcheck="false" placeholder="eyJhbGciOi… (a leading 'Bearer ' is fine)"></textarea>
+        <div class="row"><button class="btn ghost" id="jwtSample" type="button">Load sample</button></div>
+        <div id="jwtWarn" aria-live="polite"></div>
         <div class="grid2">
-          <div><label class="lbl">Header</label><pre id="jwtHead" class="code">—</pre></div>
-          <div><label class="lbl">Payload</label><pre id="jwtBody" class="code">—</pre></div>
+          <div><span class="lbl">Header</span><pre id="jwtHead" class="code">—</pre></div>
+          <div><span class="lbl">Payload</span><pre id="jwtBody" class="code">—</pre></div>
         </div>
+        <p class="note">Don't paste production tokens from other people's systems. Even here, treat live tokens like passwords.</p>
       </div>
     </section>
 
     <!-- ENCODE -->
-    <section class="panel" id="p-encode">
+    <section class="panel" id="p-encode" role="tabpanel">
       <div class="term-head"><span></span><span></span><span></span><b>codec.sh</b></div>
       <div class="body">
         <label class="lbl" for="encIn">Input</label>
         <textarea id="encIn" rows="3" spellcheck="false" placeholder="Text to encode or decode"></textarea>
         <div class="row">
+          <label class="sr" for="encMode">Format</label>
           <select id="encMode">
-            <option value="b64">Base64</option>
-            <option value="url">URL</option>
+            <option value="b64">Base64 / Base64URL</option>
+            <option value="url">URL (percent)</option>
             <option value="hex">Hex</option>
             <option value="bin">Binary</option>
             <option value="rot13">ROT13</option>
             <option value="html">HTML entities</option>
           </select>
-          <button class="btn" id="encDo">Encode →</button>
-          <button class="btn ghost" id="decDo">← Decode</button>
-          <button class="btn ghost" id="encSwap">Swap ⇅</button>
+          <button class="btn" id="encDo" type="button">Encode →</button>
+          <button class="btn ghost" id="decDo" type="button">← Decode</button>
+          <button class="btn ghost" id="encSwap" type="button">Swap ⇅</button>
+          <button class="btn ghost" id="encCopy" type="button">Copy</button>
         </div>
         <label class="lbl" for="encOut">Output</label>
         <textarea id="encOut" rows="3" spellcheck="false" readonly></textarea>
-        <p class="err" id="encErr"></p>
+        <p class="err" id="encErr" role="alert"></p>
       </div>
     </section>
   </main>
 
-  <footer class="foot">Built by <a href="https://github.com/perarasuboopathirajanm">Perarasu Boopathirajan</a> · For learning and defensive use only</footer>
-  <div class="toast" id="toast">Copied</div>
+  <footer class="foot">Built by <a href="https://github.com/perarasuboopathirajanm" rel="noopener noreferrer">Perarasu Boopathirajan</a> · For learning and defensive use only · <a href="https://github.com/perarasuboopathirajanm/shieldkit/tree/main/tests" target="_blank" rel="noopener noreferrer">80 automated tests</a></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="lib.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

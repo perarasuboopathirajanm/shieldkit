@@ -1,50 +1,52 @@
 # ⛨ ShieldKit: Browser Security Toolkit
 
-A set of **defensive security tools** with a hacker-terminal look, running **100% in your browser**. No server, no tracking, no data leaves your device.
+**Defensive security tools that run entirely in your browser.** No account, no server, no tracking.
 
-**[▶ Live demo](https://perarasuboopathirajanm.github.io/shieldkit/)**
+**[▶ Live demo](https://perarasuboopathirajanm.github.io/shieldkit/)** · ✅ 80 automated tests · 🔒 strict Content-Security-Policy
 
 ## Tools
 
-| Tool | What it does |
-|---|---|
-| 🔑 **Password Auditor** | Entropy, strength meter, estimated offline crack time, 8-point checklist, and a secure random password generator |
-| 🛡️ **Breach Check** | Checks a password against 900M+ leaked passwords via [Have I Been Pwned](https://haveibeenpwned.com/API/v3#PwnedPasswords) using **k-anonymity**: only the first 5 chars of the SHA-1 hash are sent |
-| 🎣 **Phishing URL Analyzer** | Risk score 0–100 with explained red flags: look-alike brands (`paypa1`), brand-in-subdomain tricks, raw IPs, `@` tricks, punycode homographs, shorteners, high-abuse TLDs, bait words |
-| #️⃣ **Hash Generator** | MD5, SHA-1, SHA-256, SHA-384, SHA-512 (Web Crypto API, plus an RFC 1321 MD5 implementation) |
-| 🔍 **Hash Identifier** | Recognises MD5/NTLM, SHA family, bcrypt, Argon2, scrypt, Linux shadow (`$1$ $5$ $6$`), MySQL, PBKDF2 and more |
-| 🪪 **JWT Inspector** | Decodes header and payload, converts timestamps, and flags `alg: none`, expired tokens, missing `exp`, weak HS secrets and sensitive data in payloads |
-| 🔁 **Encoder / Decoder** | Base64 (UTF-8 safe), URL, Hex, Binary, ROT13, HTML entities |
+| Tool | What it does | How it stays accurate |
+|---|---|---|
+| 🔑 **Password strength** | Strength grade, offline crack time (fast hash vs bcrypt-like), detected weaknesses, secure generator | Uses **[zxcvbn](https://github.com/dropbox/zxcvbn)** pattern matching (dictionaries, names, l33t-speak, keyboard walks, dates, repeats). Grades are based on **offline** attack cost, so `Tr0ub4dor&3` is *Fair*, not "strong" |
+| 🛡️ **Breach check** | Has this password appeared in a data breach? | [HIBP Pwned Passwords](https://haveibeenpwned.com/API/v3#PwnedPasswords) **k-anonymity**: only the first 5 hex chars of the SHA-1 are sent, with response padding |
+| 🎣 **Phishing URL analyzer** | Risk score 0–100 with explained red flags | Finds the **real owner** (public suffixes like `co.uk`, free-hosting platforms like `*.github.io`). Detects brand impersonation (exact, homoglyph `paypa1`/`rn→m`, one-letter typosquats `gooogle`) across 30+ brands with full official-domain allowlists (e.g. `microsoftonline.com` is Microsoft). Also flags `user@host` tricks, punycode, IPs, shorteners, risky TLDs and executable downloads |
+| #️⃣ **Hash generator** | MD5, SHA-1, SHA-256/384/512 | Web Crypto API; MD5 verified against RFC 1321 vectors |
+| 🔍 **Hash identifier** | bcrypt, Argon2, yescrypt, scrypt, shadow `$1$/$5$/$6$`, PBKDF2, LDAP, MySQL, raw hex and Base64 digests | Shows confidence and warns that same-length hashes (MD5/NTLM) can't be told apart by format |
+| 🪪 **JWT inspector** | Decodes header and payload, human-readable times | Flags `alg:none`, expiry problems, missing `exp`, long lifetimes, `jku`/`x5u`/`jwk` key-injection headers, suspicious `kid`, sensitive claims, and JWE tokens |
+| 🔁 **Encoder / decoder** | Base64/Base64URL, URL, Hex, Binary, ROT13, HTML entities | UTF-8 safe, strict validation (no silent garbage), handles large input |
 
-## Run locally
+## Security design
+
+- **Strict CSP** (`default-src 'none'`): no inline scripts or styles; network access only to the HIBP range API.
+- **Subresource Integrity** on the only third-party script (zxcvbn from cdnjs), loaded lazily when you use the password tool.
+- **No third-party fonts or analytics**, and `referrer` is set to `no-referrer`.
+- **All untrusted input is escaped** before rendering (tested with XSS payloads).
+- The password generator uses `crypto.getRandomValues` with **rejection sampling**, so there's no modulo bias.
+- The phishing analyzer is **static only**: it never opens the link.
+
+## Project structure
+
+```
+index.html    UI markup + CSP
+style.css     styling
+lib.js        all analysis logic (pure functions, no DOM)
+app.js        UI wiring
+tests/run.js  80 tests: phishing (legit vs malicious), RFC vectors, JWT, codecs, generator
+```
+
+## Run & test
 
 ```bash
 git clone https://github.com/perarasuboopathirajanm/shieldkit.git
 cd shieldkit
-npx serve .   # or just open index.html
+node tests/run.js        # run the test suite (Node 18+, no dependencies)
+npx serve .              # open http://localhost:3000
 ```
 
-## Security & privacy design
+## Limitations
 
-- Everything runs client-side with the **Web Crypto API**.
-- The breach check uses the **k-anonymity** range API, so your password and its full hash never leave the browser.
-- The phishing analyzer is **static analysis only** and never opens the URL.
-- Untrusted input is HTML-escaped before rendering (no XSS from analyzed URLs or tokens).
-
-## Tech
-
-`HTML` · `CSS` · `Vanilla JavaScript` · `Web Crypto API` · `HIBP Pwned Passwords API`
-
-## Roadmap
-
-- [ ] Security headers checker (with a small serverless proxy)
-- [ ] Email header analyzer (SPF / DKIM / DMARC)
-- [ ] TOTP (2FA) code generator & QR
-- [ ] Offline PWA mode
-
-## Disclaimer
-
-Built for **learning and defensive use**. The phishing score is heuristic, so always verify links through official channels.
+The phishing score is heuristic and the brand list is finite, so a clean result isn't proof a site is safe. JWT signatures aren't verified, because that needs the server's key.
 
 ## License
 
